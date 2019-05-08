@@ -1,0 +1,33 @@
+---
+title: "E2 Returns"
+author: "Karl Polen"
+date: "May 8, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(zoo)
+library(lubridate)
+```
+
+
+Below are excess returns organized in 12 month periods ending 4/30.  Most recent 12 month period had an outlier related to a transition that went our way.  Prior year had negative outliers related to a strategy they were attempting on sector weights that didn't work out.
+
+Then we present the annualized excess returns on five year rolling sample period.
+
+```{r, echo=F, warning=F, message=F}
+e2=read.csv("e2_returns.csv")
+e2=e2[-1,]
+e2$Date=as.Date(e2$Date,format="%m/%d/%Y")
+e2$Year=year(e2$Date-10+months(8))
+ggplot(e2,aes(y=Excess*100,x=Year,group=Year))+geom_boxplot()+ylab("Excess return (bp)")+
+  ggtitle("E2 Monthly Excess Returns")
+e2z=zoo(e2$Excess*20,e2$Date)
+e2roll=rollapply(e2z,60,sum,align="right")
+e2rolldf=data.frame(Date=index(e2roll),Excess=coredata(e2roll))
+ggplot(e2rolldf,aes(x=Date,y=Excess))+geom_line()+ylab("Excess return (bp)")+
+  ggtitle("E2 5yr rolling excess return annualized")+geom_smooth()
+
+```
